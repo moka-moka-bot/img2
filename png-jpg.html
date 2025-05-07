@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>画像変換アプリ（JPG ↔ PNG ＋ RGB → JPG）</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
+    input, select, button { margin: 10px; }
+    #preview { max-width: 300px; max-height: 300px; display: block; margin: 10px auto; }
+    canvas { display: none; }
+    .section { border-top: 1px solid #ccc; padding-top: 20px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+
+  <h1>画像変換アプリ</h1>
+
+  <!-- JPG ↔ PNG 変換 -->
+  <div>
+    <h2>JPG ↔ PNG 変換</h2>
+    <input type="file" id="inputFile" accept="image/jpeg,image/png" />
+    <br>
+    変換形式：
+    <select id="format">
+      <option value="png">PNGに変換</option>
+      <option value="jpeg">JPGに変換</option>
+    </select>
+    <br>
+    <canvas id="canvas" width="1" height="1"></canvas>
+    <img id="preview" src="" alt="プレビュー画像" style="display: none;" />
+    <br>
+    <button id="downloadBtn" style="display: none;">画像をダウンロード</button>
+  </div>
+
+  <!-- RGB → JPG 生成 -->
+  <div class="section">
+    <h2>RGB → JPG画像 生成</h2>
+    <p>
+      R: <input type="number" id="r" min="0" max="255" value="255">
+      G: <input type="number" id="g" min="0" max="255" value="255">
+      B: <input type="number" id="b" min="0" max="255" value="255">
+    </p>
+    <button onclick="generateRGBImage()">JPG画像を生成＆ダウンロード</button>
+  </div>
+
+  <script>
+    // JPG ↔ PNG 変換処理
+    const input = document.getElementById('inputFile');
+    const format = document.getElementById('format');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const preview = document.getElementById('preview');
+
+    input.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file || !file.type.startsWith('image/')) {
+        alert("画像ファイル（JPGまたはPNG）を選んでください");
+        return;
+      }
+
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+
+          preview.src = canvas.toDataURL();
+          preview.style.display = 'block';
+          downloadBtn.style.display = 'inline';
+        };
+        img.src = event.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const type = format.value;
+      const mimeType = type === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const ext = type === 'jpeg' ? 'jpg' : 'png';
+
+      const dataURL = canvas.toDataURL(mimeType);
+      const link = document.createElement('a');
+      link.download = `converted.${ext}`;
+      link.href = dataURL;
+      link.click();
+    });
+
+    // RGB → JPG生成
+    function generateRGBImage() {
+      const r = document.getElementById('r').value;
+      const g = document.getElementById('g').value;
+      const b = document.getElementById('b').value;
+
+      canvas.width = 200;
+      canvas.height = 200;
+
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const jpgData = canvas.toDataURL('image/jpeg');
+
+      const link = document.createElement('a');
+      link.download = `rgb_${r}_${g}_${b}.jpg`;
+      link.href = jpgData;
+      link.click();
+    }
+  </script>
+</body>
+</html>
