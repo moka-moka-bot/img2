@@ -2,59 +2,49 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>画像変換アプリ（JPG ↔ PNG ＋ RGB → JPG）</title>
+  <title>PNG → JPG（白背景）変換アプリ</title>
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
-    input, select, button { margin: 10px; }
-    #preview { max-width: 300px; max-height: 300px; display: block; margin: 10px auto; }
-    canvas { display: none; }
-    .section { border-top: 1px solid #ccc; padding-top: 20px; margin-top: 30px; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    input, select, button {
+      margin: 10px;
+    }
+    #preview {
+      max-width: 300px;
+      max-height: 300px;
+      display: block;
+      margin: 10px auto;
+    }
+    canvas {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <h1>画像変換アプリ</h1>
+  <h1>PNG → JPG（白背景）変換アプリ</h1>
 
-  <!-- JPG ↔ PNG 変換 -->
-  <div>
-    <h2>JPG ↔ PNG 変換</h2>
-    <input type="file" id="inputFile" accept="image/jpeg,image/png" />
-    <br>
-    変換形式：
-    <select id="format">
-      <option value="png">PNGに変換</option>
-      <option value="jpeg">JPGに変換</option>
-    </select>
-    <br>
-    <canvas id="canvas" width="1" height="1"></canvas>
-    <img id="preview" src="" alt="プレビュー画像" style="display: none;" />
-    <br>
-    <button id="downloadBtn" style="display: none;">画像をダウンロード</button>
-  </div>
-
-  <!-- RGB → JPG 生成 -->
-  <div class="section">
-    <h2>RGB → JPG画像 生成</h2>
-    <p>
-      R: <input type="number" id="r" min="0" max="255" value="255">
-      G: <input type="number" id="g" min="0" max="255" value="255">
-      B: <input type="number" id="b" min="0" max="255" value="255">
-    </p>
-    <button onclick="generateRGBImage()">JPG画像を生成＆ダウンロード</button>
-  </div>
+  <input type="file" id="inputFile" accept="image/png,image/jpeg" />
+  <br>
+  <button id="downloadBtn" style="display: none;">JPGでダウンロード</button>
+  <br>
+  <img id="preview" src="" alt="プレビュー" />
+  <canvas id="canvas"></canvas>
 
   <script>
     const input = document.getElementById('inputFile');
-    const format = document.getElementById('format');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const downloadBtn = document.getElementById('downloadBtn');
     const preview = document.getElementById('preview');
+    const downloadBtn = document.getElementById('downloadBtn');
 
     input.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file || !file.type.startsWith('image/')) {
-        alert("画像ファイル（JPGまたはPNG）を選んでください");
+        alert("画像ファイルを選んでください");
         return;
       }
 
@@ -65,18 +55,16 @@
         img.onload = function () {
           canvas.width = img.width;
           canvas.height = img.height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-          // 透明対策：背景を白で塗りつぶす
-          if (format.value === 'jpeg') {
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
+          // ▼ 背景を白で塗る（透明対策）
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+          // ▼ 画像を上に描画
           ctx.drawImage(img, 0, 0);
 
-          preview.src = canvas.toDataURL();
-          preview.style.display = 'block';
+          // ▼ プレビュー用に表示
+          preview.src = canvas.toDataURL('image/jpeg');
           downloadBtn.style.display = 'inline';
         };
         img.src = event.target.result;
@@ -86,35 +74,12 @@
     });
 
     downloadBtn.addEventListener('click', () => {
-      const type = format.value;
-      const mimeType = type === 'jpeg' ? 'image/jpeg' : 'image/png';
-      const ext = type === 'jpeg' ? 'jpg' : 'png';
-
-      const dataURL = canvas.toDataURL(mimeType);
+      const dataURL = canvas.toDataURL('image/jpeg');
       const link = document.createElement('a');
-      link.download = `converted.${ext}`;
+      link.download = 'converted.jpg';
       link.href = dataURL;
       link.click();
     });
-
-    function generateRGBImage() {
-      const r = document.getElementById('r').value;
-      const g = document.getElementById('g').value;
-      const b = document.getElementById('b').value;
-
-      canvas.width = 200;
-      canvas.height = 200;
-
-      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const jpgData = canvas.toDataURL('image/jpeg');
-
-      const link = document.createElement('a');
-      link.download = `rgb_${r}_${g}_${b}.jpg`;
-      link.href = jpgData;
-      link.click();
-    }
   </script>
 
 </body>
