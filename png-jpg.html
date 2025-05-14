@@ -44,7 +44,6 @@
   </div>
 
   <script>
-    // JPG ↔ PNG 変換処理
     const input = document.getElementById('inputFile');
     const format = document.getElementById('format');
     const canvas = document.getElementById('canvas');
@@ -67,6 +66,13 @@
           canvas.width = img.width;
           canvas.height = img.height;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // 透明対策：背景を白で塗りつぶす
+          if (format.value === 'jpeg') {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+
           ctx.drawImage(img, 0, 0);
 
           preview.src = canvas.toDataURL();
@@ -91,7 +97,6 @@
       link.click();
     });
 
-    // RGB → JPG生成
     function generateRGBImage() {
       const r = document.getElementById('r').value;
       const g = document.getElementById('g').value;
@@ -111,5 +116,6 @@
       link.click();
     }
   </script>
+
 </body>
 </html>
